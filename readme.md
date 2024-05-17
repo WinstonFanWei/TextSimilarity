@@ -9,4 +9,3 @@ This is the repository for the my paper titled "Text similarity" accepted at the
 ```
 pip install -r requirements.txt
 ```
-
