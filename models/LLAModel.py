@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
-from LSTMLayer import LSTMLayer
+from models.LSTMLayer import LSTMLayer
 
 class LLAModel(nn.Module):
     def __init__(self, vocab_size, embedding_dim, hidden_size, num_topics):
