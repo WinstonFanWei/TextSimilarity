@@ -4,3 +4,5 @@ pandas
 tqdm
 matplotlib
 seaborn
+nltk
+gensim

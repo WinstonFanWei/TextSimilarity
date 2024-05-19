@@ -44,7 +44,7 @@ def main(data):
     corpus = [dictionary.doc2bow(text) for text in text_ls]
 
     # 构建 LDA 模型 passes 为遍历所有文档的次数
-    lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=10, passes=1)
+    lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=3, passes=1)
     
     """
         update data = 
@@ -52,7 +52,7 @@ def main(data):
             "train": {
                 file_name: {
                     "file_path" : file_path, 
-                    "file_content" : file_content
+                    "file_content" : file_content, 
                     "file_token_topic_list" : file_token_topic_list (file_lenth, topic_numbers)
                 }
             }
@@ -64,17 +64,19 @@ def main(data):
             }
         }
     """
-    for key, value in train_data.items():
-        file_token_topic_list = []
-        for token in value["file_content"]:
-            word_id = dictionary.token2id[token]
-            token_topics_distribution = [topic[1] for topic in lda_model.get_term_topics(word_id, minimum_probability=-1)]
-            file_token_topic_list.append(token_topics_distribution)
         
-        value["file_token_topic_list"] = file_token_topic_list
+    for key, value in train_data.items():
+        file_copus_sequence = []
+        for token in value["file_content"]:
+            file_copus_sequence.append(dictionary.doc2bow([token])[0])
+            
+        file_token_topic_list = lda_model.get_document_topics(file_copus_sequence, minimum_probability=0, minimum_phi_value=0, per_word_topics=True)[2]
+            
+        # 对 file_token_topic_list 进行简单化
+        value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
     
-    # print(train_data["test.txt"]) 加和不等于1，数值太小
-    
+    print(train_data["test.txt"])
+
     # to do: 嵌入比较
     
      
@@ -82,16 +84,16 @@ if __name__ == '__main__':
     """ Main function. """
     
     # Parameters
-    paras = {
-        "vocab_size": 10000,  
-        "embedding_dim": 300,
-        "hidden_size": 128,
-        "num_topics": 50,
-        "batch_size": 64,
-        "lr": 0.001,
-        "epochs": 25,
-        "device": "cpu" # cuda
-    }
+    # paras = {
+    #     "vocab_size": 10000,  
+    #     "embedding_dim": 300,
+    #     "hidden_size": 128,
+    #     "num_topics": 50,
+    #     "batch_size": 64,
+    #     "lr": 0.001,
+    #     "epochs": 25,
+    #     "device": "cpu" # cuda
+    # }
 
     # Data
     # train_data = [torch.randint(0, paras["vocab_size"], (paras["batch_size"],), dtype=torch.long) for _ in range(10)]
@@ -125,5 +127,3 @@ if __name__ == '__main__':
     # model.em_algorithm(train_data, num_iterations=10, batch_size=batch_size, lr=lr)
 
     main(data)
-    
-    
