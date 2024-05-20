@@ -12,6 +12,7 @@ import os
 import Utils
 from models.LLAModel import LLAModel
 from Dataloader import Dataloader
+from CompareFiles import CompareFiles
 
 from gensim import corpora, models
 from gensim.test.utils import datapath
@@ -27,7 +28,7 @@ def train_epoch(model, dataloader, optimizer, criterion):
 def train(model, filepath, optimizer, scheduler, paras):
     pass
     
-def main(data):
+def main(data, paras):
     train_data = data['train']
 
     '''
@@ -53,7 +54,7 @@ def main(data):
                 file_name: {
                     "file_path" : file_path, 
                     "file_content" : file_content, 
-                    "file_token_topic_list" : file_token_topic_list (file_lenth, topic_numbers)
+                    "file_token_topic_list" : file_token_topic_list [list](file_lenth, topic_numbers)
                 }
             }
             "test": {
@@ -78,13 +79,19 @@ def main(data):
     print(train_data["test.txt"])
 
     # to do: 嵌入比较
+    train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
+    test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
-     
+    comparefiles = CompareFiles(train_data, train_compare_path)A 4`1`
+    comparefiles.compare()
+    
+    
 if __name__ == '__main__':
     """ Main function. """
     
     # Parameters
-    # paras = {
+    paras = {
+        "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main"
     #     "vocab_size": 10000,  
     #     "embedding_dim": 300,
     #     "hidden_size": 128,
@@ -93,7 +100,7 @@ if __name__ == '__main__':
     #     "lr": 0.001,
     #     "epochs": 25,
     #     "device": "cpu" # cuda
-    # }
+    }
 
     # Data
     # train_data = [torch.randint(0, paras["vocab_size"], (paras["batch_size"],), dtype=torch.long) for _ in range(10)]
@@ -114,8 +121,8 @@ if __name__ == '__main__':
 
     """ prepare dataloader """
     data_path = {
-        'train': 'C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main\\validation\\validation\\documents',
-        'test': 'C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main\\test\\test\\documents'
+        'train': os.path.join(paras["file_path"], "validation\\validation\\documents"),
+        'test': os.path.join(paras["file_path"], "test\\test\\documents")
     }
     dataloader = Dataloader(data_path)
     data = dataloader.load()
@@ -126,4 +133,4 @@ if __name__ == '__main__':
     # Run the EM algorithm
     # model.em_algorithm(train_data, num_iterations=10, batch_size=batch_size, lr=lr)
 
-    main(data)
+    main(data, paras)
