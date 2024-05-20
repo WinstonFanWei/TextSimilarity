@@ -75,15 +75,14 @@ def main(data, paras):
             
         # 对 file_token_topic_list 进行简单化
         value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
-    
-    print(train_data["test.txt"])
 
     # to do: 嵌入比较
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
     comparefiles = CompareFiles(train_data, train_compare_path)
-    comparefiles.compare()
+    compare_result = comparefiles.compare()
+    print(compare_result)
     
     
 if __name__ == '__main__':
