@@ -82,7 +82,7 @@ def main(data, paras):
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
-    comparefiles = CompareFiles(train_data, train_compare_path)A 4`1`
+    comparefiles = CompareFiles(train_data, train_compare_path)
     comparefiles.compare()
     
     
