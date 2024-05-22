@@ -100,8 +100,8 @@ def main(data, paras):
     print("[Similarity_cosine] RMSE: ", rmse_cosine)
     rmse_2 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_2"]), 4)
     print("[Similarity_2] RMSE: ", rmse_2)
-    rmse_3 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_half"]), 4)
-    print("[Similarity_half] RMSE: ", rmse_3)
+    rmse_half = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_half"]), 4)
+    print("[Similarity_half] RMSE: ", rmse_half)
     
     
 if __name__ == '__main__':

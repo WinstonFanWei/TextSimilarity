@@ -6,3 +6,5 @@ matplotlib
 seaborn
 nltk
 gensim
+tslearn
+scikit-learn

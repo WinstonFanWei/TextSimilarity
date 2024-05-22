@@ -87,7 +87,7 @@ class DistanceCompare:
         
     def compare(self, file1, file2):
         dtw = self.DTW(file1, file2)
-        return 1 / (1 + dtw)
+        return 1 / (1 + dtw) # 这里这样简单地处理可以吗
 
     def DTW(self, file1, file2):
         def custom_distance(i, j):
@@ -97,5 +97,8 @@ class DistanceCompare:
         y = [ [topic] for topic in self.data[str(file2) + ".txt"]["file_token_topic_list_max"] ]
         
         path, dtw_distance = dtw_path_from_metric(x, y, metric=custom_distance)
+        print("-------------------------------------------------------------------------------------------------------")
+        print(path)
+        print("-------------------------------------------------------------------------------------------------------")
         return dtw_distance
         
