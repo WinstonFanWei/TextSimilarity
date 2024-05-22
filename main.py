@@ -45,12 +45,28 @@ def main(data, paras):
     
     # 转换文档为词袋模型
     corpus = [dictionary.doc2bow(text) for text in text_ls]
+    
+    random_seed = 42
 
-    # 构建 LDA 模型 passes 为遍历所有文档的次数
-    lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=20, passes=1)
+    # 构建 LDA 模型
+    if paras["LDA_isload"] == False:
+        print("[LDA模型训练中]")
+        start_time = time.time()
+        lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=20, passes=40, random_state=random_seed)
+        end_time = time.time()
+        print("[LDA模型训练结束, 用时: " + str(round(end_time - start_time, 2)) + "s]")
+        lda_model.save(paras["LDA_load_path"])
+        
+    else:
+        # 加载模型
+        lda_model = models.LdaModel.load(paras["LDA_load_path"])
     
     # 训练word2Vec模型
-    word2vec_model = Word2Vec(text_ls, vector_size=50, window=5, min_count=1, workers=4)
+    print("[Word2Vec模型训练中]")
+    start_time = time.time()
+    word2vec_model = Word2Vec(text_ls, vector_size=50, window=10, min_count=1, workers=4, seed=random_seed)
+    end_time = time.time()
+    print("[Word2Vec模型训练结束, 用时: " + str(round(end_time - start_time, 2)) + "s]")
     
     """
         update data = 
@@ -85,21 +101,22 @@ def main(data, paras):
         value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
         value["file_token_topic_list_max"] = [ word[1][0] for word in file_token_topic_list_max ]
 
-    print(train_data["test.txt"])
+    # print(train_data["test.txt"])
     
     # to do: 嵌入比较
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
-    comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path)
+    comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path, paras)
     compare_result = comparefiles.compare()
     compare_result.to_csv('train_output.csv', index=False)
-    rmse_my = round(Utils.rmse(compare_result["Similarity"], compare_result["mySimilarity"]), 4)
-    print("[mySimilarity] RMSE: ", rmse_my)
+    if paras["MySimilarityCompute"] == True:
+        rmse_my = round(Utils.rmse(compare_result["Similarity"], compare_result["mySimilarity"]), 4)
+        print("[mySimilarity] RMSE: ", rmse_my)
     rmse_cosine = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_cosine"]), 4)
     print("[Similarity_cosine] RMSE: ", rmse_cosine)
-    rmse_2 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_2"]), 4)
-    print("[Similarity_2] RMSE: ", rmse_2)
+    rmse_2 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_doc_topic"]), 4)
+    print("[Similarity_doc_topic] RMSE: ", rmse_2)
     rmse_half = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_half"]), 4)
     print("[Similarity_half] RMSE: ", rmse_half)
     
@@ -109,7 +126,11 @@ if __name__ == '__main__':
     
     # Parameters
     paras = {
-        "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main"
+        "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main",
+        "topic_distance_matrix_iscomputed": True,
+        "MySimilarityCompute": False,
+        "LDA_isload": False,
+        "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model"
     #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,

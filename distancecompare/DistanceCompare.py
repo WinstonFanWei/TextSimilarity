@@ -5,12 +5,14 @@ from tqdm import tqdm
 from tslearn.metrics import dtw_path_from_metric
 
 class DistanceCompare:
-    def __init__(self, lda_model, word2vec_model, data):
+    def __init__(self, lda_model, word2vec_model, data, topic_distance_matrix_iscomputed):
         self.lda_model = lda_model
         self.word2vec_model = word2vec_model
         self.data = data
-        self.topic_distance_matrix = self.generate_topic_distance_matrix()
-        self.doc_distance_matrix = None
+        if topic_distance_matrix_iscomputed == False:
+            self.topic_distance_matrix = self.generate_topic_distance_matrix()
+        else:
+            self.topic_distance_matrix = self.generate_topic_distance_matrix_from_csv()
         
     def word_distance(self, word1, word2):
         """
@@ -44,11 +46,11 @@ class DistanceCompare:
         # 计算代价矩阵
         lenth = len(sort_dic_to_list)
         M = np.zeros((lenth, lenth))
-        print("M shape: ", len(M), len(M[0]))
+        # print("M shape: ", len(M), len(M[0]))
         
         for row_id, row in enumerate(tqdm(sort_dic_to_list, desc='[Generating M matrix by new dic]')):
             for column_id, column in enumerate(sort_dic_to_list):
-                M[row_id][column_id] = self.word_distance(row[1], column[1])
+                M[row_id][column_id] = round(self.word_distance(row[1], column[1]), 4)
                 
         print("[Generating M matrix Finished]")
         
@@ -79,11 +81,15 @@ class DistanceCompare:
                 # 计算Wasserstein距离
                 distance = ot.emd2(u_distribution_freq, v_distribution_freq, M, numItermax=1000000)
 
-                topic_distance_matrix[row][column] = distance
+                topic_distance_matrix[row][column] = round(distance, 4)
                 
+        pd.DataFrame(topic_distance_matrix).to_csv('topic_distance_matrix.csv', index=False)
         print("[Generating topic distance matrix Finished]")
         
         return topic_distance_matrix
+        
+    def generate_topic_distance_matrix_from_csv(self):
+        return pd.read_csv('topic_distance_matrix.csv').to_numpy()
         
     def compare(self, file1, file2):
         dtw = self.DTW(file1, file2)
@@ -97,8 +103,10 @@ class DistanceCompare:
         y = [ [topic] for topic in self.data[str(file2) + ".txt"]["file_token_topic_list_max"] ]
         
         path, dtw_distance = dtw_path_from_metric(x, y, metric=custom_distance)
-        print("-------------------------------------------------------------------------------------------------------")
-        print(path)
-        print("-------------------------------------------------------------------------------------------------------")
+        
+        with open("DTW_result.txt", 'a') as file:
+            file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: " + str(dtw_distance) + "\n\nPath:\n\n " + str(path) + 
+                       "\n------------------------------------------------------------------------------------------------------\n\n\n")
+        
         return dtw_distance
         
