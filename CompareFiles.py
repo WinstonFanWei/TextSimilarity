@@ -1,11 +1,15 @@
 import pandas as pd
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from distancecompare.DistanceCompare import DistanceCompare
 from tqdm import tqdm
 
+import logging
+
 class CompareFiles:
     def __init__(self, lda_model, word2vec_model, data, compare_path, paras):
+        self.paras = paras
         self.MySimilarityCompute = paras["MySimilarityCompute"]
         self.lda_model = lda_model
         self.word2vec_model = word2vec_model
@@ -14,6 +18,35 @@ class CompareFiles:
         self.result = None
         self.DC = DistanceCompare(self.lda_model, self.word2vec_model, self.data, paras["topic_distance_matrix_iscomputed"])
     def compare(self):
+        if self.paras["only_compute_this_similarity"] != None:
+            valid_similarities = ['mySimilarity', 'Similarity_cosine', 'Similarity_doc_topic', 'Similarity_half']
+            
+            if self.paras["only_compute_this_similarity"] not in valid_similarities:
+                print(self.paras["only_compute_this_similarity"] + " is not in valid similarities")
+                return None
+            
+            df_compare = pd.read_csv("train_output.csv")
+            
+            for index, row in tqdm(df_compare.iterrows(), desc='[Only compute ' + self.paras["only_compute_this_similarity"] + ' compute]', total=len(df_compare)):
+                if self.paras["only_compute_this_similarity"] == 'mySimilarity':
+                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+                    
+                elif self.paras["only_compute_this_similarity"] == 'Similarity_cosine':
+                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_cosine(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+                
+                elif self.paras["only_compute_this_similarity"] == 'Similarity_doc_topic':
+                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_doc_topic(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+                    df_compare.loc[index, 'Similarity_doc_topic'] = round(df_compare.loc[index, 'Similarity_doc_topic'], 2)
+                
+                else:
+                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_half(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+                    
+            print('[Only compute ' + self.paras["only_compute_this_similarity"] +  ' Finished]')
+                
+            self.result = df_compare
+            return self.result
+            
+        
         df_compare = self.read_file()
         
         if self.MySimilarityCompute == True:
@@ -27,6 +60,7 @@ class CompareFiles:
             
         for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_doc_topic compute]', total=len(df_compare)):
             df_compare.loc[index, 'Similarity_doc_topic'] = self.compare_file_doc_topic(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+            df_compare.loc[index, 'Similarity_doc_topic'] = round(df_compare.loc[index, 'Similarity_doc_topic'], 2)
         print('[Similarity_doc_topic compute Finished]')
             
         for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_half compute]', total=len(df_compare)):
@@ -60,6 +94,12 @@ class CompareFiles:
         topic_dis_list_1 = [topic[1] for topic in topic_distribution_1]
         topic_dis_list_2 = [topic[1] for topic in topic_distribution_2]
         cosine_sim = cosine_similarity([topic_dis_list_1], [topic_dis_list_2])
+        # if file1 == '1966_236' and file2 == '1967_267':
+        #     print(topic_dis_list_1)
+        #     print(topic_dis_list_2)
+        # if file1 == '1983_129' and file2 == '1983_27':
+        #     print(topic_dis_list_1)
+        #     print(topic_dis_list_2)
         return round(cosine_sim[0][0], 2)
     
     def compare_file_half(self, file1, file2):

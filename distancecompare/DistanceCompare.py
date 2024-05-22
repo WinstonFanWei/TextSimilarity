@@ -4,6 +4,8 @@ import ot
 from tqdm import tqdm
 from tslearn.metrics import dtw_path_from_metric
 
+import logging
+
 class DistanceCompare:
     def __init__(self, lda_model, word2vec_model, data, topic_distance_matrix_iscomputed):
         self.lda_model = lda_model
@@ -89,11 +91,12 @@ class DistanceCompare:
         return topic_distance_matrix
         
     def generate_topic_distance_matrix_from_csv(self):
+        print("[From csv \"topic_distance_matrix\" to get topic distance matrix ... Finished]")
         return pd.read_csv('topic_distance_matrix.csv').to_numpy()
         
     def compare(self, file1, file2):
         dtw = self.DTW(file1, file2)
-        return 1 / (1 + dtw) # 这里这样简单地处理可以吗
+        return 1 / (1 + np.log10(1 + dtw)) # 这里这样简单地处理可以吗
 
     def DTW(self, file1, file2):
         def custom_distance(i, j):
@@ -105,7 +108,7 @@ class DistanceCompare:
         path, dtw_distance = dtw_path_from_metric(x, y, metric=custom_distance)
         
         with open("DTW_result.txt", 'a') as file:
-            file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: " + str(dtw_distance) + "\n\nPath:\n\n " + str(path) + 
+            file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: " + str(round(dtw_distance, 4)) + "\n\nPath:\n\n " + str(path) + 
                        "\n------------------------------------------------------------------------------------------------------\n\n\n")
         
         return dtw_distance

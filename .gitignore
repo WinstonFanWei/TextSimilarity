@@ -2,8 +2,6 @@
 *.csv
 *.txt
 __pycache__/
-test.py
-test1.py
-test2.py
-test3.py
 modelsave/
+test/
+log/

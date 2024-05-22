@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import logging
+
 import numpy as np
 import pandas as pd
 import time
@@ -31,6 +33,7 @@ def train(model, filepath, optimizer, scheduler, paras):
     pass
     
 def main(data, paras):
+    
     train_data = data['train']
 
     '''
@@ -59,6 +62,7 @@ def main(data, paras):
         
     else:
         # 加载模型
+        print("[LDA模型 loading ... Finished]")
         lda_model = models.LdaModel.load(paras["LDA_load_path"])
     
     # 训练word2Vec模型
@@ -107,30 +111,32 @@ def main(data, paras):
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
-    comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path, paras)
-    compare_result = comparefiles.compare()
-    compare_result.to_csv('train_output.csv', index=False)
-    if paras["MySimilarityCompute"] == True:
-        rmse_my = round(Utils.rmse(compare_result["Similarity"], compare_result["mySimilarity"]), 4)
-        print("[mySimilarity] RMSE: ", rmse_my)
-    rmse_cosine = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_cosine"]), 4)
-    print("[Similarity_cosine] RMSE: ", rmse_cosine)
-    rmse_2 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_doc_topic"]), 4)
-    print("[Similarity_doc_topic] RMSE: ", rmse_2)
-    rmse_half = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_half"]), 4)
-    print("[Similarity_half] RMSE: ", rmse_half)
+    if paras["Debug"] == False:
+        comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path, paras)
+        compare_result = comparefiles.compare()
+        compare_result.to_csv('train_output.csv', index=False)
+    else:
+        compare_result = pd.read_csv('train_output.csv')
+    
+    # 指标展示
+    Utils.compute_rmse(compare_result, paras)
+    Utils.compute_correlation(compare_result, paras)
+    Utils.compute_f1(compare_result, paras)
     
     
 if __name__ == '__main__':
+    print("-----------------------------------------------------------------------------------------------------------------")
     """ Main function. """
     
     # Parameters
     paras = {
         "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main",
         "topic_distance_matrix_iscomputed": True,
-        "MySimilarityCompute": False,
-        "LDA_isload": False,
-        "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model"
+        "MySimilarityCompute": True,
+        "LDA_isload": True,
+        "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model",
+        "Debug": False,
+        "only_compute_this_similarity": 'Similarity_doc_topic',
     #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,
