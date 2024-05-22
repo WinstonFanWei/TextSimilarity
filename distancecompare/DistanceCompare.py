@@ -96,7 +96,7 @@ class DistanceCompare:
         
     def compare(self, file1, file2):
         dtw = self.DTW(file1, file2)
-        return 1 / (1 + np.log10(1 + dtw)) # 这里这样简单地处理可以吗
+        return np.exp(- 20 * dtw) # 这里这样简单地处理可以吗
 
     def DTW(self, file1, file2):
         def custom_distance(i, j):
@@ -107,9 +107,11 @@ class DistanceCompare:
         
         path, dtw_distance = dtw_path_from_metric(x, y, metric=custom_distance)
         
+        DTW_standard = dtw_distance / len(path)
+        
         with open("DTW_result.txt", 'a') as file:
-            file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: " + str(round(dtw_distance, 4)) + "\n\nPath:\n\n " + str(path) + 
+            file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: \n[dtw_distance]" + str(round(dtw_distance, 4)) + "\n[DTW_standard]" + str(round(DTW_standard,4)) + "\n\n[Path]\n\n " + str(path) + 
                        "\n------------------------------------------------------------------------------------------------------\n\n\n")
         
-        return dtw_distance
+        return DTW_standard
         

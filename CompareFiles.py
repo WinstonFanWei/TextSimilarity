@@ -18,6 +18,7 @@ class CompareFiles:
         self.result = None
         self.DC = DistanceCompare(self.lda_model, self.word2vec_model, self.data, paras["topic_distance_matrix_iscomputed"])
     def compare(self):
+        
         if self.paras["only_compute_this_similarity"] != None:
             valid_similarities = ['mySimilarity', 'Similarity_cosine', 'Similarity_doc_topic', 'Similarity_half']
             
@@ -103,7 +104,7 @@ class CompareFiles:
         return round(cosine_sim[0][0], 2)
     
     def compare_file_half(self, file1, file2):
-        return round(0.5, 2)
+        return np.random()
         
     def read_file(self):
         df_compare = pd.read_csv(self.compare_path, names=["file1", "file2", "Similarity"])

@@ -135,8 +135,8 @@ if __name__ == '__main__':
         "MySimilarityCompute": True,
         "LDA_isload": True,
         "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model",
-        "Debug": False,
-        "only_compute_this_similarity": 'Similarity_doc_topic',
+        "Debug": False, # Debug模式下直接读取相似度文件，不用进行计算
+        "only_compute_this_similarity": None, # 不更新其他相似度，只更新这个相似度，None情况下正常运行
     #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,
