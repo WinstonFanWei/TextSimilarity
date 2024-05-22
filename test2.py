@@ -1,44 +1,41 @@
-import nltk
-from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import string
+import gensim
+from gensim.corpora import Dictionary
+from gensim.models import LdaModel
+from pprint import pprint
+from gensim.models import Word2Vec
+from CompareFiles import CompareFiles
 
-# 确保已下载必要的数据包
-nltk.download('punkt')
-nltk.download('stopwords')
+# 创建示例文档
+documents = [
+    ['human', 'interface', 'computer'],
+    ['survey', 'computer', 'system'],
+    ['interface', 'system'],
+]
 
-def preprocess_text(text):
-    # 分词
-    words = nltk.word_tokenize(text)
-    # 转换为小写
-    words = [word.lower() for word in words]
-    # 去除标点符号
-    words = [word for word in words if word.isalnum()]
-    # 去除停用词
-    stop_words = set(stopwords.words('english'))
-    words = [word for word in words if word not in stop_words]
-    return ' '.join(words)
+# 创建词典
+dictionary = Dictionary(documents)
 
-def calculate_cosine_similarity(doc1, doc2):
-    # 预处理文档
-    doc1_processed = preprocess_text(doc1)
-    doc2_processed = preprocess_text(doc2)
-    
-    # 计算TF-IDF
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform([doc1_processed, doc2_processed])
-    
-    # 计算余弦相似度
-    cosine_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
-    print(cosine_sim)
-    return cosine_sim[0][0]
+# 创建语料库
+corpus = [dictionary.doc2bow(doc) for doc in documents]
 
-# 示例文档
-doc1 = "This is a sample document."
-doc2 = "This document is a sample fanwei."
+# 训练LDA模型
+lda_model = LdaModel(corpus, num_topics=2, id2word=dictionary, passes=10)
 
-similarity = calculate_cosine_similarity(doc1, doc2)
-print(f"Document similarity (cosine): {similarity:.4f}")
+# 打印词频字典
+print("词频字典 (id2word.dfs):")
+pprint(dictionary.dfs)
 
-print(cosine_similarity([[1,2],[1,2,3]]))
+# 筛选词频大于5的词
+filtered_word_list = [lda_model.id2word[word_id] for word_id, freq in lda_model.id2word.dfs.items() if freq > 1]
+
+filtered_word_list_ = [word_id for word_id, freq in lda_model.id2word.dfs.items() if freq > 1]
+
+# 打印筛选后的词
+print("\n筛选后词频大于5的词:")
+print(filtered_word_list)
+print(filtered_word_list_)
+print(dictionary)
+print(lda_model.get_topics())
+
+print(lda_model.id2word.dfs.items())
+print(lda_model.id2word.dfs)

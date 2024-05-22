@@ -13,9 +13,11 @@ import Utils
 from models.LLAModel import LLAModel
 from Dataloader import Dataloader
 from CompareFiles import CompareFiles
+from distancecompare.DistanceCompare import DistanceCompare
 
 from gensim import corpora, models
 from gensim.test.utils import datapath
+from gensim.models import Word2Vec
 
 import nltk
 from nltk.corpus import stopwords
@@ -45,7 +47,10 @@ def main(data, paras):
     corpus = [dictionary.doc2bow(text) for text in text_ls]
 
     # 构建 LDA 模型 passes 为遍历所有文档的次数
-    lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=3, passes=1)
+    lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=20, passes=1)
+    
+    # 训练word2Vec模型
+    word2vec_model = Word2Vec(text_ls, vector_size=50, window=5, min_count=1, workers=4)
     
     """
         update data = 
@@ -55,6 +60,7 @@ def main(data, paras):
                     "file_path" : file_path, 
                     "file_content" : file_content, 
                     "file_token_topic_list" : file_token_topic_list [list](file_lenth, topic_numbers)
+                    "file_token_topic_list_max" : file_token_topic_list_max [list](file_lenth)
                 }
             }
             "test": {
@@ -71,18 +77,31 @@ def main(data, paras):
         for token in value["file_content"]:
             file_copus_sequence.append(dictionary.doc2bow([token])[0])
             
-        file_token_topic_list = lda_model.get_document_topics(file_copus_sequence, minimum_probability=0, minimum_phi_value=0, per_word_topics=True)[2]
+        file_token_topic = lda_model.get_document_topics(file_copus_sequence, minimum_probability=0, minimum_phi_value=0, per_word_topics=True)
+        file_token_topic_list = file_token_topic[2]
+        file_token_topic_list_max = file_token_topic[1]
             
         # 对 file_token_topic_list 进行简单化
         value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
+        value["file_token_topic_list_max"] = [ word[1][0] for word in file_token_topic_list_max ]
 
+    print(train_data["test.txt"])
+    
     # to do: 嵌入比较
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
-    comparefiles = CompareFiles(train_data, train_compare_path)
+    comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path)
     compare_result = comparefiles.compare()
-    print(compare_result)
+    compare_result.to_csv('train_output.csv', index=False)
+    rmse_my = round(Utils.rmse(compare_result["Similarity"], compare_result["mySimilarity"]), 4)
+    print("[mySimilarity] RMSE: ", rmse_my)
+    rmse_cosine = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_cosine"]), 4)
+    print("[Similarity_cosine] RMSE: ", rmse_cosine)
+    rmse_2 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_2"]), 4)
+    print("[Similarity_2] RMSE: ", rmse_2)
+    rmse_3 = round(Utils.rmse(compare_result["Similarity"], compare_result["Similarity_half"]), 4)
+    print("[Similarity_half] RMSE: ", rmse_3)
     
     
 if __name__ == '__main__':
@@ -91,7 +110,7 @@ if __name__ == '__main__':
     # Parameters
     paras = {
         "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main"
-    #     "vocab_size": 10000,  
+    #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,
     #     "num_topics": 50,
