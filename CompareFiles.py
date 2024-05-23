@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from distancecompare.DistanceCompare import DistanceCompare
 from tqdm import tqdm
+from datetime import datetime
 
 import logging
 
@@ -20,6 +21,10 @@ class CompareFiles:
     def compare(self):
         
         if self.paras["only_compute_this_similarity"] != None:
+            if self.paras["only_compute_this_similarity"] == 'mySimilarity':
+                with open("DTW_result.txt", 'w') as file:
+                    file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
+            
             valid_similarities = ['mySimilarity', 'Similarity_cosine', 'Similarity_doc_topic', 'Similarity_half']
             
             if self.paras["only_compute_this_similarity"] not in valid_similarities:
@@ -47,7 +52,9 @@ class CompareFiles:
             self.result = df_compare
             return self.result
             
-        
+        with open("DTW_result.txt", 'w') as file:
+            file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
+            
         df_compare = self.read_file()
         
         if self.MySimilarityCompute == True:
@@ -104,7 +111,7 @@ class CompareFiles:
         return round(cosine_sim[0][0], 2)
     
     def compare_file_half(self, file1, file2):
-        return np.random()
+        return round(np.random.random(), 2)
         
     def read_file(self):
         df_compare = pd.read_csv(self.compare_path, names=["file1", "file2", "Similarity"])
