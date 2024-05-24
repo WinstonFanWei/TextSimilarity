@@ -3,6 +3,7 @@ import pandas as pd
 import ot
 from tqdm import tqdm
 from tslearn.metrics import dtw_path_from_metric
+import torch
 
 import logging
 
@@ -11,6 +12,7 @@ class DistanceCompare:
         self.lda_model = lda_model
         self.word2vec_model = word2vec_model
         self.data = data
+        self.theta = torch.tensor(20.0, dtype=torch.float32, requires_grad=True)
         if topic_distance_matrix_iscomputed == False:
             self.topic_distance_matrix = self.generate_topic_distance_matrix()
         else:
@@ -56,7 +58,7 @@ class DistanceCompare:
                 
         print("[Generating M matrix Finished]")
         
-        pd.DataFrame(M).to_csv('M.csv', index=False)
+        pd.DataFrame(M).to_csv('output\\M.csv', index=False)
         
         topic_num = len(self.lda_model.get_topics())
         topic_distance_matrix = np.zeros((topic_num, topic_num))
@@ -85,31 +87,36 @@ class DistanceCompare:
 
                 topic_distance_matrix[row][column] = round(distance, 4)
                 
-        pd.DataFrame(topic_distance_matrix).to_csv('topic_distance_matrix.csv', index=False)
+        pd.DataFrame(topic_distance_matrix).to_csv('output\\topic_distance_matrix.csv', index=False)
         print("[Generating topic distance matrix Finished]")
         
         return topic_distance_matrix
         
     def generate_topic_distance_matrix_from_csv(self):
-        print("[From csv \"topic_distance_matrix\" to get topic distance matrix ... Finished]")
-        return pd.read_csv('topic_distance_matrix.csv').to_numpy()
+        print("[From csv \"output\\topic_distance_matrix\" to get topic distance matrix ... Finished]")
+        return pd.read_csv('output\\topic_distance_matrix.csv').to_numpy()
         
-    def compare(self, file1, file2):
-        dtw = self.DTW(file1, file2)
-        return np.exp(- 20 * dtw) # 这里这样简单地处理可以吗
+    def compare(self, file1, file2, mode):
+        dtw = self.DTW(file1, file2, mode)
+        return torch.exp(- self.theta * dtw)
 
-    def DTW(self, file1, file2):
+    def DTW(self, file1, file2, mode="word"):
         def custom_distance(i, j):
             return self.topic_distance_matrix[int(i[0]), int(j[0])]
         
-        x = [ [topic] for topic in self.data[str(file1) + ".txt"]["file_token_topic_list_max"] ]
-        y = [ [topic] for topic in self.data[str(file2) + ".txt"]["file_token_topic_list_max"] ]
+        if mode == "word":
+            x = [ [topic] for topic in self.data[str(file1) + ".txt"]["file_token_topic_list_max"] ]
+            y = [ [topic] for topic in self.data[str(file2) + ".txt"]["file_token_topic_list_max"] ]
+            
+        if mode == "sentence":
+            x = [ [topic] for topic in self.data[str(file1) + ".txt"]["file_sentence_token_topic_list_max"] ]
+            y = [ [topic] for topic in self.data[str(file2) + ".txt"]["file_sentence_token_topic_list_max"] ]
         
         path, dtw_distance = dtw_path_from_metric(x, y, metric=custom_distance)
         
         DTW_standard = dtw_distance / len(path)
         
-        with open("DTW_result.txt", 'a') as file:
+        with open("output\\DTW_result_" + mode + ".txt", 'a') as file:
             file.write(str(file1) + ".txt V.S. " + str(file2) + ".txt: \n[dtw_distance]" + str(round(dtw_distance, 4)) + "\n[DTW_standard]" + str(round(DTW_standard,4)) + "\n\n[Path]\n\n " + str(path) + 
                        "\n------------------------------------------------------------------------------------------------------\n\n\n")
         

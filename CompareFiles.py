@@ -5,6 +5,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from distancecompare.DistanceCompare import DistanceCompare
 from tqdm import tqdm
 from datetime import datetime
+import torch
+import torch.optim as optim
 
 import logging
 
@@ -19,47 +21,22 @@ class CompareFiles:
         self.result = None
         self.DC = DistanceCompare(self.lda_model, self.word2vec_model, self.data, paras["topic_distance_matrix_iscomputed"])
     def compare(self):
-        
-        if self.paras["only_compute_this_similarity"] != None:
-            if self.paras["only_compute_this_similarity"] == 'mySimilarity':
-                with open("DTW_result.txt", 'w') as file:
-                    file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
+        with open("output\\DTW_result_word.txt", 'w') as file:
+            file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             
-            valid_similarities = ['mySimilarity', 'Similarity_cosine', 'Similarity_doc_topic', 'Similarity_half']
-            
-            if self.paras["only_compute_this_similarity"] not in valid_similarities:
-                print(self.paras["only_compute_this_similarity"] + " is not in valid similarities")
-                return None
-            
-            df_compare = pd.read_csv("train_output.csv")
-            
-            for index, row in tqdm(df_compare.iterrows(), desc='[Only compute ' + self.paras["only_compute_this_similarity"] + ' compute]', total=len(df_compare)):
-                if self.paras["only_compute_this_similarity"] == 'mySimilarity':
-                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
-                    
-                elif self.paras["only_compute_this_similarity"] == 'Similarity_cosine':
-                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_cosine(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
-                
-                elif self.paras["only_compute_this_similarity"] == 'Similarity_doc_topic':
-                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_doc_topic(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
-                    df_compare.loc[index, 'Similarity_doc_topic'] = round(df_compare.loc[index, 'Similarity_doc_topic'], 2)
-                
-                else:
-                    df_compare.loc[index, str(self.paras["only_compute_this_similarity"])] = self.compare_file_half(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
-                    
-            print('[Only compute ' + self.paras["only_compute_this_similarity"] +  ' Finished]')
-                
-            self.result = df_compare
-            return self.result
-            
-        with open("DTW_result.txt", 'w') as file:
+        with open("output\\DTW_result_sentence.txt", 'w') as file:
             file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             
         df_compare = self.read_file()
         
         if self.MySimilarityCompute == True:
+            if self.paras["open_theta"] == True:
+                print(["Training the word theta ... "])
+                self.train_theta(df_compare, "word")
+                print(["Training the word theta ... Finished"])
             for index, row in tqdm(df_compare.iterrows(), desc='[MySimilarity compute]', total=len(df_compare)):
-                df_compare.loc[index, 'mySimilarity'] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
+                df_compare.loc[index, 'mySimilarity'] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], "word").item()
+            df_compare['mySimilarity'] = round(df_compare['mySimilarity'], 2)
             print('[MySimilarity compute Finished]')
         
         for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_cosine compute]', total=len(df_compare)):
@@ -70,17 +47,23 @@ class CompareFiles:
             df_compare.loc[index, 'Similarity_doc_topic'] = self.compare_file_doc_topic(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
             df_compare.loc[index, 'Similarity_doc_topic'] = round(df_compare.loc[index, 'Similarity_doc_topic'], 2)
         print('[Similarity_doc_topic compute Finished]')
-            
-        for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_half compute]', total=len(df_compare)):
-            df_compare.loc[index, 'Similarity_half'] = self.compare_file_half(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"])
-        print('[Similarity_half compute Finished]')
+        
+        if self.paras["open_theta"] == True:
+            print(["Training the sentence theta ... "])
+            self.train_theta(df_compare, "sentence")
+            print(["Training the sentence theta ... Finished"])
+
+        for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_sentence_topic compute]', total=len(df_compare)):
+            df_compare.loc[index, 'Similarity_sentence_topic'] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], "sentence").item()
+        df_compare['mySimilarity'] = round(df_compare['mySimilarity'], 2)
+        print('[Similarity_sentence_topic compute Finished]')
         
         self.result = df_compare
         return self.result
     
-    def compare_file_DTW(self, file1, file2):
-        result = self.DC.compare(file1, file2)
-        return round(result, 2)
+    def compare_file_DTW(self, file1, file2, mode):
+        result = self.DC.compare(file1, file2, mode)
+        return result
     
     def compare_file_cosine(self, file1, file2):
         file1_content_str = ' '.join(self.data[str(file1) + ".txt"]["file_content"])
@@ -109,10 +92,40 @@ class CompareFiles:
         #     print(topic_dis_list_1)
         #     print(topic_dis_list_2)
         return round(cosine_sim[0][0], 2)
-    
-    def compare_file_half(self, file1, file2):
-        return round(np.random.random(), 2)
         
     def read_file(self):
         df_compare = pd.read_csv(self.compare_path, names=["file1", "file2", "Similarity"])
         return df_compare
+    
+    def train_step(self, df_compare, optimizer, mode):
+        mysimilarty_list = []
+        for index, row in df_compare.iterrows():
+            mysimilarty_list.append(self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], mode))
+        
+        mysimilarty = torch.tensor(mysimilarty_list, dtype=torch.float32, requires_grad=True)
+        truesimilarity = torch.tensor(df_compare['Similarity'].values, dtype=torch.float32, requires_grad=True)
+        def loss_fn(y_pred, y):
+            return torch.mean(((y_pred - y) ** 2).mean()) ** 0.5
+
+        loss = loss_fn(mysimilarty, truesimilarity)
+        loss.backward()
+        optimizer.step()
+        return loss
+
+    def train_theta(self, df_compare, mode):
+        self.DC.theta = torch.tensor(20.0, dtype=torch.float32, requires_grad=True)
+        learning_rate = 0.001
+        epochs = 10
+        
+        optimizer = optim.SGD([self.DC.theta], lr=learning_rate)
+        optimizer.zero_grad()
+        
+        for epoch in range(epochs):
+            loss = self.train_step(df_compare, optimizer, mode)
+            print(f"Epoch {epoch}: Loss = {loss.item()}, w = {self.DC.theta.item()}")
+
+        print(f"Final parameter: theta = {self.DC.theta.item()}")
+        
+        return self.DC.theta.item()
+        
+        

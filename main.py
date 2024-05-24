@@ -20,6 +20,7 @@ from distancecompare.DistanceCompare import DistanceCompare
 from gensim import corpora, models
 from gensim.test.utils import datapath
 from gensim.models import Word2Vec
+import spacy
 
 import nltk
 from nltk.corpus import stopwords
@@ -79,19 +80,23 @@ def main(data, paras):
                 file_name: {
                     "file_path" : file_path, 
                     "file_content" : file_content, 
+                    "file_sentences": file_sentences, [list] (sentence_num, sentence_length)
                     "file_token_topic_list" : file_token_topic_list [list](file_lenth, topic_numbers)
                     "file_token_topic_list_max" : file_token_topic_list_max [list](file_lenth)
+                    "file_sentence_token_topic_list_max": file_sentence_token_topic_list [list](sentence_number)
                 }
             }
             "test": {
                 file_name: {
                     "file_path" : file_path, 
-                    "file_content" : file_content
+                    "file_content" : file_content, 
+                    "file_sentences": file_sentences, [list] (sentence_num, sentence_length)
                 }
             }
         }
     """
-        
+    
+    # 得到文档每个token的topic概率
     for key, value in train_data.items():
         file_copus_sequence = []
         for token in value["file_content"]:
@@ -107,6 +112,22 @@ def main(data, paras):
 
     # print(train_data["test.txt"])
     
+    # 得到文档每个sentence的topic概率 - 两种方式：词topic分布的平均 或者 从get_document_topics中获得句子的topic，现在采用第二种
+    
+    for key, value in train_data.items():
+        file_sentence_topic_list = []
+        for sentence in value["file_sentences"]:
+            file_sentence_topic = lda_model.get_document_topics(dictionary.doc2bow(sentence), minimum_probability=0, minimum_phi_value=0)
+            
+            # 对 file_sentence_token_topic_list 进行简单化
+            max_index = max(file_sentence_topic, key=lambda x: x[1])[0]
+                
+            file_sentence_topic_list.append(max_index)
+            value["file_sentence_token_topic_list_max"] = file_sentence_topic_list
+        
+    # print(train_data["test.txt"])
+    
+    # 计算文件相似度
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     test_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
     
@@ -135,7 +156,7 @@ if __name__ == '__main__':
         "LDA_isload": True,
         "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model",
         "Debug": False, # Debug模式下直接读取相似度文件，不用进行计算
-        "only_compute_this_similarity": None, # 不更新其他相似度，只更新这个相似度，None情况下正常运行
+        "open_theta": True
     #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,
