@@ -109,7 +109,7 @@ def main(data, paras):
         # 对 file_token_topic_list 进行简单化
         value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
         value["file_token_topic_list_max"] = [ word[1][0] for word in file_token_topic_list_max ]
-
+    
     # print(train_data["test.txt"])
     
     # 得到文档每个sentence的topic概率 - 两种方式：词topic分布的平均 或者 从get_document_topics中获得句子的topic，现在采用第二种
@@ -134,9 +134,9 @@ def main(data, paras):
     if paras["Debug"] == False:
         comparefiles = CompareFiles(lda_model, word2vec_model, train_data, train_compare_path, paras)
         compare_result = comparefiles.compare()
-        compare_result.to_csv('train_output.csv', index=False)
+        compare_result.to_csv('output\\train_output.csv', index=False)
     else:
-        compare_result = pd.read_csv('train_output.csv')
+        compare_result = pd.read_csv('output\\train_output.csv')
     
     # 指标展示
     Utils.compute_rmse(compare_result, paras)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         "LDA_isload": True,
         "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model",
         "Debug": False, # Debug模式下直接读取相似度文件，不用进行计算
-        "open_theta": True
+        "open_theta": False
     #     "vocab_size": 10000,
     #     "embedding_dim": 300,
     #     "hidden_size": 128,

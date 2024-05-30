@@ -28,7 +28,7 @@ def compute_rmse(compare_result, paras):
     rmse_half = round(rmse(compare_result["Similarity"], compare_result["Similarity_sentence_topic"]), 4)
     # print("[Similarity_sentence_topic] RMSE: ", rmse_half)
     
-    message = "\n---------------------- RMSE ---------------------- \n[0, +inf] RMSE smaller is better.\n[mySimilarity] RMSE: " + str(rmse_my) + "\n[Similarity_cosine] RMSE: " + str(rmse_cosine) + "\n[Similarity_doc_topic] RMSE: " + str(rmse_doc_topic) + "\n[Similarity_sentence_topic] RMSE:  " + str(rmse_half) + "\n--------------------------------------------------\n"
+    message = "\n---------------------- RMSE ---------------------- \n[0, +inf] RMSE smaller is better.\n[mySimilarity] RMSE: " + str(rmse_my) + "\n[Similarity_cosine] RMSE: " + str(rmse_cosine) + "\n[Similarity_doc_topic] RMSE: " + str(rmse_doc_topic) + "\n[Similarity_sentence_topic] RMSE: " + str(rmse_half) + "\n--------------------------------------------------\n"
     logger.debug(message)
     
 def compute_correlation(compare_result, paras):
@@ -54,7 +54,7 @@ def compute_correlation(compare_result, paras):
     cor_half = round(compare_result["Similarity"].corr(compare_result["Similarity_sentence_topic"]), 4)
     # print("[Similarity_sentence_topic] CORR: ", cor_half)
     
-    message = "\n---------------------- Correlation ---------------------- \n[-1, 1] Correlation bigger is better.\n[mySimilarity] CORR: " + str(cor_my) + "\n[Similarity_cosine] CORR: " + str(cor_cosine) + "\n[Similarity_doc_topic] CORR: " + str(cor_doc_topic) + "\n[Similarity_sentence_topic] CORR:  " + str(cor_half) + "\n---------------------------------------------------------\n"
+    message = "\n---------------------- Correlation ---------------------- \n[-1, 1] Correlation bigger is better.\n[mySimilarity] CORR: " + str(cor_my) + "\n[Similarity_cosine] CORR: " + str(cor_cosine) + "\n[Similarity_doc_topic] CORR: " + str(cor_doc_topic) + "\n[Similarity_sentence_topic] CORR: " + str(cor_half) + "\n---------------------------------------------------------\n"
     logger.debug(message)
     
 def df_add_labels(df, column1, column2):
@@ -90,7 +90,7 @@ def compute_f1(compare_result, paras):
     f1_half = round(f1_score(df['ground_truth'], df['predict_label']), 4)
     # print("[Similarity_sentence_topic] F1-score: ", f1_half)
     
-    message = "\n---------------------- F1-score ---------------------- \n[0, 1] F1-score bigger is better.\n[mySimilarity] F1-score: " + str(f1_my) + "\n[Similarity_cosine] F1-score: " + str(f1_cosine) + "\n[Similarity_doc_topic] F1-score: " + str(f1_doc_topic) + "\n[Similarity_sentence_topic] F1-score:  " + str(f1_half) + "\n------------------------------------------------------\n"
+    message = "\n---------------------- F1-score ---------------------- \n[0, 1] F1-score bigger is better.\n[mySimilarity] F1-score: " + str(f1_my) + "\n[Similarity_cosine] F1-score: " + str(f1_cosine) + "\n[Similarity_doc_topic] F1-score: " + str(f1_doc_topic) + "\n[Similarity_sentence_topic] F1-score: " + str(f1_half) + "\n------------------------------------------------------\n"
     logger.debug(message)
     
     

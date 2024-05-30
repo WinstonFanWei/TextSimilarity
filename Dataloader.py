@@ -14,6 +14,8 @@ from nltk.stem import PorterStemmer
 
 import spacy
 
+from tqdm import tqdm
+
 class Dataloader:
     def __init__(self, data_path):
         self.data_path = data_path
@@ -43,7 +45,7 @@ class Dataloader:
         print("[Loading Data ...]")
         train_name_filepath = {}
         # 遍历文件夹中的每个项
-        for filename in os.listdir(self.data_path["train"]):
+        for filename in tqdm(os.listdir(self.data_path["train"]), desc="Loading Train Data"):
             # 构造完整的文件路径
             file_path = os.path.join(self.data_path["train"], filename)
             # 检查这个文件是否是文件而不是文件夹
@@ -77,7 +79,7 @@ class Dataloader:
         
         test_name_filepath = {}
         # 遍历文件夹中的每个项
-        for filename in os.listdir(self.data_path["test"]):
+        for filename in tqdm(os.listdir(self.data_path["test"]), desc="Loading Test Data"):
             # 构造完整的文件路径
             file_path = os.path.join(self.data_path["test"], filename)
             # 检查这个文件是否是文件而不是文件夹

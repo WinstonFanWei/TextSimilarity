@@ -21,8 +21,6 @@ class CompareFiles:
         self.result = None
         self.DC = DistanceCompare(self.lda_model, self.word2vec_model, self.data, paras["topic_distance_matrix_iscomputed"])
     def compare(self):
-        with open("output\\DTW_result_word.txt", 'w') as file:
-            file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             
         with open("output\\DTW_result_sentence.txt", 'w') as file:
             file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
@@ -30,8 +28,12 @@ class CompareFiles:
         df_compare = self.read_file()
         
         if self.MySimilarityCompute == True:
+            with open("output\\DTW_result_word.txt", 'w') as file:
+                file.write("DTW_result, Time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
             if self.paras["open_theta"] == True:
                 print(["Training the word theta ... "])
+                for index, row in tqdm(df_compare.iterrows(), desc='[word_dtw compute]', total=len(df_compare)):
+                    df_compare.loc[index, 'word_dtw'] = self.DC.DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], "word").item()
                 self.train_theta(df_compare, "word")
                 print(["Training the word theta ... Finished"])
             for index, row in tqdm(df_compare.iterrows(), desc='[MySimilarity compute]', total=len(df_compare)):
@@ -50,12 +52,14 @@ class CompareFiles:
         
         if self.paras["open_theta"] == True:
             print(["Training the sentence theta ... "])
+            for index, row in tqdm(df_compare.iterrows(), desc='[sentence_dtw compute]', total=len(df_compare)):
+                df_compare.loc[index, 'sentence_dtw'] = self.DC.DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], "sentence").item()
             self.train_theta(df_compare, "sentence")
             print(["Training the sentence theta ... Finished"])
 
         for index, row in tqdm(df_compare.iterrows(), desc='[Similarity_sentence_topic compute]', total=len(df_compare)):
             df_compare.loc[index, 'Similarity_sentence_topic'] = self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], "sentence").item()
-        df_compare['mySimilarity'] = round(df_compare['mySimilarity'], 2)
+        df_compare['Similarity_sentence_topic'] = round(df_compare['Similarity_sentence_topic'], 2)
         print('[Similarity_sentence_topic compute Finished]')
         
         self.result = df_compare
@@ -99,30 +103,35 @@ class CompareFiles:
     
     def train_step(self, df_compare, optimizer, mode):
         mysimilarty_list = []
-        for index, row in df_compare.iterrows():
-            mysimilarty_list.append(self.compare_file_DTW(df_compare.loc[index, "file1"], df_compare.loc[index, "file2"], mode))
+        if mode == "word":
+            for index, row in df_compare.iterrows():
+                mysimilarty_list.append(torch.exp(- self.DC.theta * df_compare.loc[index, 'word_dtw']))
+        else:
+            for index, row in df_compare.iterrows():
+                mysimilarty_list.append(torch.exp(- self.DC.theta * df_compare.loc[index, 'sentence_dtw']))
         
         mysimilarty = torch.tensor(mysimilarty_list, dtype=torch.float32, requires_grad=True)
         truesimilarity = torch.tensor(df_compare['Similarity'].values, dtype=torch.float32, requires_grad=True)
         def loss_fn(y_pred, y):
-            return torch.mean(((y_pred - y) ** 2).mean()) ** 0.5
+            return torch.mean((y_pred - y) ** 2)
 
         loss = loss_fn(mysimilarty, truesimilarity)
         loss.backward()
         optimizer.step()
-        return loss
+        return loss ** 0.5
 
     def train_theta(self, df_compare, mode):
-        self.DC.theta = torch.tensor(20.0, dtype=torch.float32, requires_grad=True)
+        self.DC.theta = torch.tensor(0.0, dtype=torch.float32, requires_grad=True)
         learning_rate = 0.001
-        epochs = 10
+        epochs = 1000
         
         optimizer = optim.SGD([self.DC.theta], lr=learning_rate)
         optimizer.zero_grad()
         
         for epoch in range(epochs):
             loss = self.train_step(df_compare, optimizer, mode)
-            print(f"Epoch {epoch}: Loss = {loss.item()}, w = {self.DC.theta.item()}")
+            if epoch % 100 == 0:
+                print(f"Epoch {epoch}: Loss = {loss.item()}, w = {self.DC.theta.item()}")
 
         print(f"Final parameter: theta = {self.DC.theta.item()}")
         
