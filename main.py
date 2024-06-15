@@ -155,9 +155,9 @@ if __name__ == '__main__':
         "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model", # LDA模型保存路径
         
         # 开关
-        "LDA_isload": True, # LDA模型是否已经保存下来，保存了就不用再次训练
+        "LDA_isload": False, # LDA模型是否已经保存下来，保存了就不用再次训练
         "Debug": False, # Debug模式下不进行相似度的计算 即CompareFiles()
-        "topic_distance_matrix_iscomputed": True, # topic距离矩阵是否已经计算完成
+        "topic_distance_matrix_iscomputed": False, # topic距离矩阵是否已经计算完成
         "MySimilarityCompute": True, # 是否计算我们的主要相似度度量方式
         "open_theta": False # 暂时关闭theta的逻辑
     }
