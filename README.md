@@ -1,11 +1,11 @@
 # TextSimilarity
 
-<a href="https://github.com/WinstonFanWei/TextSimilarity">Here is the code link</a>
+<a href="https://github.com/WinstonFanWei/TextSimilarity">Here is the code link: https://github.com/WinstonFanWei/TextSimilarity</a>
 
 ## 使用 Git 克隆仓库
 
 ```bash
-git clone https://github.com/username/repo.git
+git clone git@github.com:WinstonFanWei/TextSimilarity.git
 ```
 
 ## Introduction
