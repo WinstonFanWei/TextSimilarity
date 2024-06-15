@@ -10,7 +10,7 @@ git clone https://github.com/username/repo.git
 
 ## Introduction
 
-Please install the required environment, and config as following, then you can run the main.py to reproduce the results in the paper.
+Please install the required environment, and config as following, then you can run the ```main.py``` to reproduce the results in the paper.
 
 ```python
 paras = {
