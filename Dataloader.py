@@ -42,97 +42,66 @@ class Dataloader:
             }
         }
         """
+        
         print("[Loading Data ...]")
-        train_name_filepath = {}
-        # 遍历文件夹中的每个项
-        for filename in tqdm(os.listdir(self.data_path["train"]), desc="Loading Train Data"):
-            # 构造完整的文件路径
-            file_path = os.path.join(self.data_path["train"], filename)
-            # 检查这个文件是否是文件而不是文件夹
-            if os.path.isfile(file_path):
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    # 读取文件内容到字符串
-                    text = file.read()
-                    
-                    # 确保已经下载了所需的 NLTK 数据包
-                    # nltk.download('punkt')
-                    # nltk.download('stopwords')
-
-                    # 分词处理
-                    tokens = word_tokenize(text)
-
-                    # 停用词处理
-                    filtered_tokens = [word for word in tokens if word.lower() not in self.stop_words and word.isalpha()]
-                    
-                    # 词干提取
-                    # stemmer = PorterStemmer()
-                    # stemmed_tokens = [stemmer.stem(token) for token in tokens]
-                    
-                    # 分句子
-                    doc = self.sentence_split_method(text)
-                    sentences = [sent.text for sent in doc.sents]
-                    
-                    # 对每个句子进行预处理
-                    processed_sentences = [self.preprocess(sentence) for sentence in sentences]
-
-                train_name_filepath[filename] = {"file_path": file_path, "file_sentences": processed_sentences, "file_content": filtered_tokens}
-        
-        test_name_filepath = {}
-        # 遍历文件夹中的每个项
-        for filename in tqdm(os.listdir(self.data_path["test"]), desc="Loading Test Data"):
-            # 构造完整的文件路径
-            file_path = os.path.join(self.data_path["test"], filename)
-            # 检查这个文件是否是文件而不是文件夹
-            if os.path.isfile(file_path):
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    # 读取文件内容到字符串
-                    text = file.read()
-                    
-                    # 确保已经下载了所需的 NLTK 数据包
-                    # nltk.download('punkt')
-                    # nltk.download('stopwords')
-
-                    # 分词处理
-                    tokens = word_tokenize(text)
-
-                    # 停用词处理
-                    filtered_tokens = [word for word in tokens if word.lower() not in self.stop_words and word.isalpha()]
-                    
-                    # 词干提取
-                    # stemmer = PorterStemmer()
-                    # stemmed_tokens = [stemmer.stem(token) for token in tokens]
-                    
-                    # 分句子
-                    doc = self.sentence_split_method(text)
-                    sentences = [sent.text for sent in doc.sents]
-                    
-                    # 对每个句子进行预处理
-                    processed_sentences = [self.preprocess(sentence) for sentence in sentences]
-                    
-                test_name_filepath[filename] = {"file_path": file_path, "file_sentences": processed_sentences, "file_content": filtered_tokens}
-                
         data = {
-            'train': train_name_filepath,
-            'test': test_name_filepath
+            'train': self.preprocess("train"),
+            'test': self.preprocess("test")
         }
-        
         print("[Loading Data ... Finished]")
         
         return data
     
-    def preprocess(self, text):
+    def sentence_preprocess(self, text):
         # 预处理文本
         tokens = word_tokenize(text.lower())
         tokens = [word for word in tokens if word.isalpha() and word not in self.stop_words]
         return tokens
 
-# 遍历文件夹中的文件
-# for filename in os.listdir(folder_path):
-#     if filename.endswith('.txt'):  # 确保它是txt文件
-#         file_path = os.path.join(folder_path, filename)  # 获取文件的完整路径
-#         with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件进行读取
-#             content = file.read()  # 读取文件内容
-#             file_contents.append(content)  # 将内容添加到列表中
+    def preprocess(self, mode):
+        """
+        return name_filepath_list = {
+            file_name: {
+                "file_path": file_path, 
+                "file_sentences": file_sentences, # 文件的句子表示
+                "file_content": file_content # 文件的单词表示
+            }
+            ......
+        }
+        """
+        name_filepath_list = {}
+        # 遍历文件夹中的每个项
+        for filename in tqdm(os.listdir(self.data_path[mode]), desc="Loading " + mode + " Data" ):
+            # 构造完整的文件路径
+            file_path = os.path.join(self.data_path[mode], filename)
+            # 检查这个文件是否是文件而不是文件夹
+            if os.path.isfile(file_path):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    # 读取文件内容到字符串
+                    text = file.read()
+                    
+                    # 确保已经下载了所需的 NLTK 数据包
+                    # nltk.download('punkt')
+                    # nltk.download('stopwords')
 
-# 现在file_contents列表包含了每个txt文件的内容作为字符串
-    
+                    # 分词处理
+                    tokens = word_tokenize(text)
+
+                    # 停用词处理
+                    filtered_tokens = [word for word in tokens if word.lower() not in self.stop_words and word.isalpha()]
+                    
+                    # 词干提取
+                    # stemmer = PorterStemmer()
+                    # stemmed_tokens = [stemmer.stem(token) for token in tokens]
+                    
+                    # 分句子
+                    doc = self.sentence_split_method(text)
+                    sentences = [sent.text for sent in doc.sents]
+                    
+                    # 对每个句子进行预处理
+                    processed_sentences = [self.sentence_preprocess(sentence) for sentence in sentences]
+
+                name_filepath_list[filename] = {"file_path": file_path, "file_sentences": processed_sentences, "file_content": filtered_tokens}
+                
+        return name_filepath_list
+        

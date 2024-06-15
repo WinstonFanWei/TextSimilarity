@@ -32,7 +32,7 @@ def train_epoch(model, dataloader, optimizer, criterion):
     
 def train(model, filepath, optimizer, scheduler, paras):
     pass
-    
+
 def main(data, paras):
     
     train_data = data['train']
@@ -150,39 +150,17 @@ if __name__ == '__main__':
     
     # Parameters
     paras = {
-        "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main",
-        "topic_distance_matrix_iscomputed": True,
-        "MySimilarityCompute": True,
-        "LDA_isload": True,
-        "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model",
-        "Debug": False, # Debug模式下直接读取相似度文件，不用进行计算
-        "open_theta": False
-    #     "vocab_size": 10000,
-    #     "embedding_dim": 300,
-    #     "hidden_size": 128,
-    #     "num_topics": 50,
-    #     "batch_size": 64,
-    #     "lr": 0.001,
-    #     "epochs": 25,
-    #     "device": "cpu" # cuda
+        # 文件路径
+        "file_path": "C:\\Users\\Winston\\Desktop\\document-similarity-main\\document-similarity-main", # 数据集路径
+        "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model", # LDA模型保存路径
+        
+        # 开关
+        "LDA_isload": True, # LDA模型是否已经保存下来，保存了就不用再次训练
+        "Debug": False, # Debug模式下不进行相似度的计算 即CompareFiles()
+        "topic_distance_matrix_iscomputed": True, # topic距离矩阵是否已经计算完成
+        "MySimilarityCompute": True, # 是否计算我们的主要相似度度量方式
+        "open_theta": False # 暂时关闭theta的逻辑
     }
-
-    # Data
-    # train_data = [torch.randint(0, paras["vocab_size"], (paras["batch_size"],), dtype=torch.long) for _ in range(10)]
-    
-    # Create the LLA model to be model
-    # model = LLAModel(paras["vocab_size"], paras["embedding_dim"], paras["hidden_size"], paras["num_topics"])
-    
-    # model.to(torch.device(paras["device"]))
-    
-    """ optimizer and scheduler """
-    # optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()),
-    #                        paras["lr"], betas=(0.9, 0.999), eps=1e-05)
-    # scheduler = optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.5)
-
-    """ number of parameters """
-    # num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    # print('[Info] Number of parameters: {}'.format(num_params))
 
     """ prepare dataloader """
     data_path = {
@@ -191,11 +169,5 @@ if __name__ == '__main__':
     }
     dataloader = Dataloader(data_path)
     data = dataloader.load()
-    
-    """ train the model """
-    # train(model, filepath, optimizer, scheduler, paras)
-
-    # Run the EM algorithm
-    # model.em_algorithm(train_data, num_iterations=10, batch_size=batch_size, lr=lr)
 
     main(data, paras)
