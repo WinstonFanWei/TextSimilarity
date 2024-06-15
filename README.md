@@ -2,15 +2,19 @@
 
 <a href="https://github.com/WinstonFanWei/TextSimilarity">Here is the code link: https://github.com/WinstonFanWei/TextSimilarity</a>
 
-## 使用 Git 克隆仓库
+## Use git
 
 ```bash
 git clone git@github.com:WinstonFanWei/TextSimilarity.git
 ```
 
+## For teacher
+
+Get the files from bb, and config as introduction.
+
 ## Introduction
 
-Please install the required environment, and config as following, then you can run the ```main.py``` to reproduce the results in the paper.
+Please install the required environment, and config ```main.py``` as following, then you can run the ```main.py``` to reproduce the results in the paper.
 
 ```python
 paras = {
