@@ -1,10 +1,7 @@
-*.log
 *.csv
 *.txt
 __pycache__/
 modelsave/
 test/
-log/
 output/
-latex/
 PowerPoint/
