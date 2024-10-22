@@ -28,6 +28,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
     
 def train_epoch(model, dataloader, optimizer, criterion):
+    print(1)
     pass
     
 def train(model, filepath, optimizer, scheduler, paras):
