@@ -46,6 +46,22 @@ def main(data, paras):
         text_ls.append(value["file_content"])
     
     dictionary = corpora.Dictionary(text_ls)
+    print("字典词数: ", len(dictionary))
+    
+    # text_ls2 = []
+    # for key, value in train_data.items():
+    #     for ls in value["file_sentences"]:
+    #         text_ls2.append(ls)
+            
+    # dictionary2 = corpora.Dictionary(text_ls2)
+    # print("字典词数: ", len(dictionary2))
+    
+    # text_ls3 = []
+    # for key, value in train_data.items():
+    #     for ls in value["file_paragraphs"]:
+    #         text_ls3.append(ls)
+    # dictionary3 = corpora.Dictionary(text_ls3)
+    # print("字典词数: ", len(dictionary3))
     
     # 转换文档为词袋模型
     corpus = [dictionary.doc2bow(text) for text in text_ls]

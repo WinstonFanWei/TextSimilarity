@@ -711,3 +711,30 @@
 [Similarity_sentence_topic] F1-score: 0.7551
 ------------------------------------------------------
 
+2024-10-19 18:05:04,048 - Utils - DEBUG 
+---------------------- RMSE ---------------------- 
+[0, +inf] RMSE smaller is better.
+[mySimilarity] RMSE: 0.3241
+[Similarity_cosine] RMSE: 0.2185
+[Similarity_doc_topic] RMSE: 0.3448
+[Similarity_sentence_topic] RMSE: 0.2511
+--------------------------------------------------
+
+2024-10-19 18:05:04,050 - Utils - DEBUG 
+---------------------- Correlation ---------------------- 
+[-1, 1] Correlation bigger is better.
+[mySimilarity] CORR: 0.5658
+[Similarity_cosine] CORR: 0.7056
+[Similarity_doc_topic] CORR: 0.6219
+[Similarity_sentence_topic] CORR: 0.5427
+---------------------------------------------------------
+
+2024-10-19 18:05:04,055 - Utils - DEBUG 
+---------------------- F1-score ---------------------- 
+[0, 1] F1-score bigger is better.
+[mySimilarity] F1-score: 0.7156
+[Similarity_cosine] F1-score: 0.6923
+[Similarity_doc_topic] F1-score: 0.8224
+[Similarity_sentence_topic] F1-score: 0.7475
+------------------------------------------------------
+
