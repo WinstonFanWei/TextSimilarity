@@ -44,6 +44,8 @@ def main(data, paras):
     text_ls = []
     for key, value in train_data.items():
         text_ls.append(value["file_content"])
+        
+    print(text_ls)
     
     dictionary = corpora.Dictionary(text_ls)
     print("字典词数: ", len(dictionary))
@@ -73,6 +75,9 @@ def main(data, paras):
         print("[LDA模型训练中]")
         start_time = time.time()
         lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=20, passes=40, random_state=random_seed)
+        topics = lda_model.print_topics()
+        for topic in topics:
+            print(topic)
         end_time = time.time()
         print("[LDA模型训练结束, 用时: " + str(round(end_time - start_time, 2)) + "s]")
         lda_model.save(paras["LDA_load_path"])
@@ -95,8 +100,9 @@ def main(data, paras):
             "train": {
                 file_name: {
                     "file_path" : file_path, 
-                    "file_content" : file_content, 
+                    "file_content" : file_content,
                     "file_sentences": file_sentences, [list] (sentence_num, sentence_length)
+                    "file_paragraphs": file_paragraphs [list] (paragraph_num, paragraph_length)
                     "file_token_topic_list" : file_token_topic_list [list](file_lenth, topic_numbers)
                     "file_token_topic_list_max" : file_token_topic_list_max [list](file_lenth)
                     "file_sentence_token_topic_list_max": file_sentence_token_topic_list [list](sentence_number)
@@ -105,8 +111,9 @@ def main(data, paras):
             "test": {
                 file_name: {
                     "file_path" : file_path, 
-                    "file_content" : file_content, 
+                    "file_content" : file_content,
                     "file_sentences": file_sentences, [list] (sentence_num, sentence_length)
+                    "file_paragraphs": file_paragraphs [list] (paragraph_num, paragraph_length)
                 }
             }
         }
