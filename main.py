@@ -122,18 +122,23 @@ def main(data, paras):
     for key, value in train_data.items():
         if(key != "test.txt"):
             continue
+        words_topic_dstb = []
         file_copus_sequence = []
         for token in value["file_content"]:
             # print(dictionary.doc2bow([token]))
             # print(a)
             file_copus_sequence.append(dictionary.doc2bow([token])[0])
             
-            print(dictionary.doc2bow([token])[0][0])
-            ttt = lda_model.get_term_topics(dictionary.doc2bow([token])[0][0], minimum_probability=-1) # 改了lda-model源码
-            print(ttt)
-            print(a)
+            word_topic_dstb = lda_model.get_term_topics(dictionary.doc2bow([token])[0][0], minimum_probability=-1) # 改了lda-model源码
+            words_topic_dstb.append([topic[1] for topic in word_topic_dstb])
+            
+        print(words_topic_dstb)
+        # print(a)
         
         file_token_topic = lda_model.get_document_topics(file_copus_sequence, minimum_probability=0, minimum_phi_value=0, per_word_topics=True)
+        
+        print(file_token_topic)
+        print(a)
         
         file_token_topic_list = file_token_topic[2]
         file_token_topic_list_max = file_token_topic[1]
