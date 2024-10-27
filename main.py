@@ -44,8 +44,6 @@ def main(data, paras):
     text_ls = []
     for key, value in train_data.items():
         text_ls.append(value["file_content"])
-        
-    print(text_ls)
     
     dictionary = corpora.Dictionary(text_ls)
     print("字典词数: ", len(dictionary))
@@ -74,7 +72,7 @@ def main(data, paras):
     if paras["LDA_isload"] == False:
         print("[LDA模型训练中]")
         start_time = time.time()
-        lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=20, passes=40, random_state=random_seed)
+        lda_model = models.LdaModel(corpus, id2word=dictionary, num_topics=50, passes=100, random_state=random_seed)
         topics = lda_model.print_topics()
         for topic in topics:
             print(topic)
@@ -90,7 +88,7 @@ def main(data, paras):
     # 训练word2Vec模型
     print("[Word2Vec模型训练中]")
     start_time = time.time()
-    word2vec_model = Word2Vec(text_ls, vector_size=50, window=10, min_count=1, workers=4, seed=random_seed)
+    word2vec_model = Word2Vec(text_ls, vector_size=256, window=10, min_count=1, workers=10, seed=random_seed)
     end_time = time.time()
     print("[Word2Vec模型训练结束, 用时: " + str(round(end_time - start_time, 2)) + "s]")
     
@@ -102,9 +100,10 @@ def main(data, paras):
                     "file_path" : file_path, 
                     "file_content" : file_content,
                     "file_sentences": file_sentences, [list] (sentence_num, sentence_length)
-                    "file_paragraphs": file_paragraphs [list] (paragraph_num, paragraph_length)
-                    "file_token_topic_list" : file_token_topic_list [list](file_lenth, topic_numbers)
-                    "file_token_topic_list_max" : file_token_topic_list_max [list](file_lenth)
+                    "file_paragraphs": file_paragraphs, [list] (paragraph_num, paragraph_length)
+                    
+                    "file_token_topic_list" : file_token_topic_list, [list](file_lenth, topic_numbers)
+                    "file_token_topic_list_max" : file_token_topic_list_max, [list](file_lenth)
                     "file_sentence_token_topic_list_max": file_sentence_token_topic_list [list](sentence_number)
                 }
             }
@@ -118,20 +117,37 @@ def main(data, paras):
             }
         }
     """
-    
+    # print(train_data["test.txt"])
     # 得到文档每个token的topic概率
     for key, value in train_data.items():
+        if(key != "test.txt"):
+            continue
         file_copus_sequence = []
         for token in value["file_content"]:
+            # print(dictionary.doc2bow([token]))
+            # print(a)
             file_copus_sequence.append(dictionary.doc2bow([token])[0])
             
+            print(dictionary.doc2bow([token])[0][0])
+            ttt = lda_model.get_term_topics(dictionary.doc2bow([token])[0][0], minimum_probability=-1) # 改了lda-model源码
+            print(ttt)
+            print(a)
+        
         file_token_topic = lda_model.get_document_topics(file_copus_sequence, minimum_probability=0, minimum_phi_value=0, per_word_topics=True)
+        
         file_token_topic_list = file_token_topic[2]
         file_token_topic_list_max = file_token_topic[1]
+        
+        print(file_token_topic_list)
+        print(file_token_topic_list_max)
             
         # 对 file_token_topic_list 进行简单化
         value["file_token_topic_list"] = [ [topic[1] for topic in token[1]] for token in file_token_topic_list ]
         value["file_token_topic_list_max"] = [ word[1][0] for word in file_token_topic_list_max ]
+        
+        print(value["file_token_topic_list"])
+        print(value["file_token_topic_list_max"])
+        print(a)
     
     # print(train_data["test.txt"])
     
@@ -148,7 +164,7 @@ def main(data, paras):
             file_sentence_topic_list.append(max_index)
             value["file_sentence_token_topic_list_max"] = file_sentence_topic_list
         
-    # print(train_data["test.txt"])
+    print(train_data["test.txt"])
     
     # 计算文件相似度
     train_compare_path = os.path.join(paras["file_path"], "validation\\validation\\similarity_scores.csv")
@@ -178,7 +194,7 @@ if __name__ == '__main__':
         "LDA_load_path": "C:\\Users\\Winston\\Desktop\\Repository\\TextSimilarity\\modelsave\\lda_model.model", # LDA模型保存路径
         
         # 开关
-        "LDA_isload": False, # LDA模型是否已经保存下来，保存了就不用再次训练
+        "LDA_isload": True, # LDA模型是否已经保存下来，保存了就不用再次训练
         "Debug": False, # Debug模式下不进行相似度的计算 即CompareFiles()
         "topic_distance_matrix_iscomputed": False, # topic距离矩阵是否已经计算完成
         "MySimilarityCompute": True, # 是否计算我们的主要相似度度量方式
